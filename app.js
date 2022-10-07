@@ -18,6 +18,8 @@ const fileUpload = require("express-fileupload");
 
 const { fstat } = require("fs");
 
+const methodOverride = require("method-override");
+
 // Connect DB
 mongoose.connect("mongodb://127.0.0.1:27017/pcat-test-db", {
   useNewUrlParser: true,
@@ -35,7 +37,10 @@ app.use(express.json());
 
 app.use(fileUpload());
 
+app.use(methodOverride("_method"));
 // ROUTES
+
+  // MAIN ROUTES
 app.get("/", async (req, res) => {
   const photos = await Photo.find({}).sort("-dateCreated");
   res.render("index", {
@@ -51,6 +56,7 @@ app.get("/add", (req, res) => {
   res.render("add");
 });
 
+  // SINGLE PRODUCT PAGE
 app.get("/photos/:id", async (req, res) => {
   const photo = await Photo.findById(req.params.id);
   res.render("photo", {
@@ -58,6 +64,7 @@ app.get("/photos/:id", async (req, res) => {
   });
 });
 
+  // UPLOAD PAGE
 app.post("/photos", async (req, res) => {
   const uploadDir = "public/uploads";
 
@@ -76,6 +83,24 @@ app.post("/photos", async (req, res) => {
 
     res.redirect("/");
   });
+});
+
+  // EDIT PAGE
+app.get("/photos/edit/:id", async (req, res) => {
+  const photo = await Photo.findOne({ _id: req.params.id });
+  res.render("edit", {
+    photo,
+  });
+});
+
+app.put("/photos/:id", async (req, res) => {
+  const photo = await Photo.findOne({ _id: req.params.id });
+  
+  photo.title = req.body.title;
+  photo.description = req.body.description;
+  await photo.save();
+
+  res.redirect(`${ req.params.id }`);
 });
 
 const port = 3000;
