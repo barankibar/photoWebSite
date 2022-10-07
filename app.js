@@ -37,10 +37,14 @@ app.use(express.json());
 
 app.use(fileUpload());
 
-app.use(methodOverride("_method"));
+app.use(
+  methodOverride("_method", {
+    methods: ["POST", "GET"],
+  })
+);
 // ROUTES
 
-  // MAIN ROUTES
+// MAIN ROUTES
 app.get("/", async (req, res) => {
   const photos = await Photo.find({}).sort("-dateCreated");
   res.render("index", {
@@ -56,7 +60,7 @@ app.get("/add", (req, res) => {
   res.render("add");
 });
 
-  // SINGLE PRODUCT PAGE
+// SINGLE PRODUCT PAGE
 app.get("/photos/:id", async (req, res) => {
   const photo = await Photo.findById(req.params.id);
   res.render("photo", {
@@ -64,7 +68,7 @@ app.get("/photos/:id", async (req, res) => {
   });
 });
 
-  // UPLOAD PAGE
+// UPLOAD PAGE
 app.post("/photos", async (req, res) => {
   const uploadDir = "public/uploads";
 
@@ -85,7 +89,7 @@ app.post("/photos", async (req, res) => {
   });
 });
 
-  // EDIT PAGE
+// EDIT PAGE
 app.get("/photos/edit/:id", async (req, res) => {
   const photo = await Photo.findOne({ _id: req.params.id });
   res.render("edit", {
@@ -95,14 +99,28 @@ app.get("/photos/edit/:id", async (req, res) => {
 
 app.put("/photos/:id", async (req, res) => {
   const photo = await Photo.findOne({ _id: req.params.id });
-  
+
   photo.title = req.body.title;
   photo.description = req.body.description;
   await photo.save();
 
-  res.redirect(`${ req.params.id }`);
+  res.redirect(`${req.params.id}`);
 });
 
+// DELETE PAGE
+app.delete("/photos/:id", async (req, res) => {
+  const photo = await Photo.findOne({ _id: req.params.id });
+
+  fs.unlink(__dirname + "/public" + photo.image, (err) => {
+    if(err) throw err;
+  });
+  
+  await Photo.findByIdAndRemove(req.params.id);
+
+  res.redirect("/");
+});
+
+// PORT
 const port = 3000;
 app.listen(port, (req, res) => {
   console.log(`Server started on ${port} port`);
