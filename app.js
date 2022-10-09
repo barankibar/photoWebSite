@@ -1,23 +1,13 @@
-const fs = require("fs");
+const photoControllers = require("./controllers/photoControllers");
+const pageController = require("./controllers/pageController");
 
 const express = require("express");
-
-const path = require("path");
-
-const ejs = require("ejs");
-
-const { execArgv } = require("process");
-
 const { default: mongoose } = require("mongoose");
-
+const { execArgv } = require("process");
+const ejs = require("ejs");
 const app = express();
 
-const Photo = require(__dirname + "/models/Photo.js");
-
 const fileUpload = require("express-fileupload");
-
-const { fstat } = require("fs");
-
 const methodOverride = require("method-override");
 
 // Connect DB
@@ -43,82 +33,15 @@ app.use(
   })
 );
 // ROUTES
+app.get("/", photoControllers.getAllPhotos);
+app.delete("/photos/:id", photoControllers.deletePhoto);
+app.get("/photos/:id", photoControllers.getPhotos);
+app.post("/photos", photoControllers.createPhoto);
+app.put("/photos/:id", photoControllers.updatePhoto);
 
-// MAIN ROUTES
-app.get("/", async (req, res) => {
-  const photos = await Photo.find({}).sort("-dateCreated");
-  res.render("index", {
-    photos,
-  });
-});
-
-app.get("/about", (req, res) => {
-  res.render("about");
-});
-
-app.get("/add", (req, res) => {
-  res.render("add");
-});
-
-// SINGLE PRODUCT PAGE
-app.get("/photos/:id", async (req, res) => {
-  const photo = await Photo.findById(req.params.id);
-  res.render("photo", {
-    photo,
-  });
-});
-
-// UPLOAD PAGE
-app.post("/photos", async (req, res) => {
-  const uploadDir = "public/uploads";
-
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
-  }
-
-  let uploadeImage = req.files.image;
-  let uploadPath = __dirname + "/public/uploads/" + uploadeImage.name;
-
-  uploadeImage.mv(uploadPath, async () => {
-    await Photo.create({
-      ...req.body,
-      image: "/uploads/" + uploadeImage.name,
-    });
-
-    res.redirect("/");
-  });
-});
-
-// EDIT PAGE
-app.get("/photos/edit/:id", async (req, res) => {
-  const photo = await Photo.findOne({ _id: req.params.id });
-  res.render("edit", {
-    photo,
-  });
-});
-
-app.put("/photos/:id", async (req, res) => {
-  const photo = await Photo.findOne({ _id: req.params.id });
-
-  photo.title = req.body.title;
-  photo.description = req.body.description;
-  await photo.save();
-
-  res.redirect(`${req.params.id}`);
-});
-
-// DELETE PAGE
-app.delete("/photos/:id", async (req, res) => {
-  const photo = await Photo.findOne({ _id: req.params.id });
-
-  fs.unlink(__dirname + "/public" + photo.image, (err) => {
-    if(err) throw err;
-  });
-  
-  await Photo.findByIdAndRemove(req.params.id);
-
-  res.redirect("/");
-});
+app.get("/photos/edit/:id", pageController.getIndexPage);
+app.get("/about", pageController.getAboutPage);
+app.get("/add", pageController.getEditPage);
 
 // PORT
 const port = 3000;
