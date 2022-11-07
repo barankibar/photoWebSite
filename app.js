@@ -11,10 +11,14 @@ const fileUpload = require("express-fileupload");
 const methodOverride = require("method-override");
 
 // Connect DB
-mongoose.connect("mongodb://127.0.0.1:27017/pcat-test-db", {
+mongoose.connect("mongodb+srv://barankibar:Borabaran&2006@cluster0.zpk18zk.mongodb.net/pcat-db?retryWrites=true&w=majority", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-});
+}).then(() => {
+  console.log("DB CONNECTED!");
+}).catch((err) => {
+  console.log(err);
+})
 
 // TEMPLATE ENGINE
 app.set("view engine", "ejs");
@@ -43,7 +47,7 @@ app.get("/about", pageController.getAboutPage);
 app.get("/add", pageController.getEditPage);
 
 // PORT
-const port = 3000;
+const port = process.env.PORT || 5000;
 app.listen(port, (req, res) => {
   console.log(`Server started on ${port} port`);
 });
