@@ -38,7 +38,6 @@ app.delete("/photos/:id", photoControllers.deletePhoto);
 app.get("/photos/:id", photoControllers.getPhotos);
 app.post("/photos", photoControllers.createPhoto);
 app.put("/photos/:id", photoControllers.updatePhoto);
-
 app.get("/photos/edit/:id", pageController.getIndexPage);
 app.get("/about", pageController.getAboutPage);
 app.get("/add", pageController.getEditPage);
